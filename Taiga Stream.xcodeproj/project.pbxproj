@@ -348,7 +348,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Taiga Stream/Taiga Stream.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "Apple Distribution";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 925F4PY4UL;
 				ENABLE_PREVIEWS = YES;
@@ -367,6 +367,7 @@
 				MARKETING_VERSION = 1.5.8;
 				PRODUCT_BUNDLE_IDENTIFIER = xyz.andrewmichaelpowell.taigastream;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=appletvos*]" = "Taiga Stream tvOS App Store";
 				SDKROOT = appletvos;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "appletvos appletvsimulator";
