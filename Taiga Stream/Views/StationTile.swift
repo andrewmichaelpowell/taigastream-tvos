@@ -101,12 +101,16 @@ struct StationTile: View {
 			)
 		}
 		.overlay(alignment: .bottomLeading) {
-			statusLabel
-				.font(.callout)
-				.frame(width: 56, height: 56)
-				.background(Circle().fill(isMoving ? Color.mint : Color.slot))
+			statusCircle
 				.padding(12)
 		}
+	}
+
+	private var statusCircle: some View {
+		statusLabel
+			.font(.callout)
+			.frame(width: 56, height: 56)
+			.background(Circle().fill(isMoving ? Color.mint : Color.slot))
 	}
 
 	@ViewBuilder
@@ -116,7 +120,7 @@ struct StationTile: View {
 				.foregroundColor(station.url.isEmpty ? .mint : Color(.label))
 		} else if isPlaying {
 			Image(systemName: "stop.fill")
-				.foregroundColor(.mint)
+				.foregroundColor(Color(.label))
 		} else {
 			Text("\(streamNumber)")
 				.foregroundColor(
