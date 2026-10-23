@@ -4,5 +4,5 @@
 import SwiftUI
 
 extension Color {
-	static let slot = Color(red: 90 / 255, green: 120 / 255, blue: 60 / 255)
+	static let slot = Color(red: 84 / 255, green: 117 / 255, blue: 50 / 255)
 }

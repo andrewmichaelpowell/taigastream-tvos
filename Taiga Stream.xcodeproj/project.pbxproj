@@ -186,7 +186,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Taiga Stream/Taiga Stream.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=appletvos*]" = 925F4PY4UL;
 				ENABLE_PREVIEWS = YES;
@@ -353,7 +353,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Taiga Stream/Taiga Stream.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = 925F4PY4UL;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
