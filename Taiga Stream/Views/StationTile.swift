@@ -15,7 +15,9 @@ struct StationTile: View {
 	@State private var manualUrl = ""
 	@State private var manualName = ""
 
-	var station: RadioStation { streamInfo.stations[index] }
+	var isAddButton = false
+
+	var station: RadioStation { streamInfo.station(at: index) }
 
 	private var streamNumber: Int { index + 1 }
 
@@ -27,55 +29,38 @@ struct StationTile: View {
 	private var isMoving: Bool { movingIndex == index }
 
 	var body: some View {
-		Button(action: select) {
-			Color.clear
-				.aspectRatio(1, contentMode: .fit)
-				.overlay {
-					if station.url.isEmpty {
-						emptyContent
-					} else {
-						configuredContent
-					}
-				}
-		}
-		.buttonStyle(.card)
-		.simultaneousGesture(
-			LongPressGesture(minimumDuration: 0.5).onEnded { _ in
-				didLongPress = true
-				showingOptions = true
+		tileButton
+			.sheet(isPresented: $showingOptions) {
+				StreamOptionsSheet(
+					index: index,
+					isPresented: $showingOptions,
+					showingSearch: $showingSearch,
+					showingManualEntry: $showingManualEntry,
+					manualUrl: $manualUrl,
+					manualName: $manualName,
+					movingIndex: $movingIndex
+				)
+				.environmentObject(streamInfo)
 			}
-		)
-		.sheet(isPresented: $showingOptions) {
-			StreamOptionsSheet(
-				index: index,
-				isPresented: $showingOptions,
-				showingSearch: $showingSearch,
-				showingManualEntry: $showingManualEntry,
-				manualUrl: $manualUrl,
-				manualName: $manualName,
-				movingIndex: $movingIndex
-			)
-			.environmentObject(streamInfo)
-		}
-		.onChange(of: showingOptions) {
-			if !showingOptions { didLongPress = false }
-		}
-		.sheet(isPresented: $showingSearch) {
-			RadioBrowserSearchSheet(
-				slotIndex: index,
-				isPresented: $showingSearch
-			)
-			.environmentObject(streamInfo)
-		}
-		.sheet(isPresented: $showingManualEntry) {
-			ManualURLSheet(
-				slotIndex: index,
-				isPresented: $showingManualEntry,
-				manualUrl: $manualUrl,
-				manualName: $manualName
-			)
-			.environmentObject(streamInfo)
-		}
+			.onChange(of: showingOptions) {
+				if !showingOptions { didLongPress = false }
+			}
+			.sheet(isPresented: $showingSearch) {
+				RadioBrowserSearchSheet(
+					slotIndex: index,
+					isPresented: $showingSearch
+				)
+				.environmentObject(streamInfo)
+			}
+			.sheet(isPresented: $showingManualEntry) {
+				ManualURLSheet(
+					slotIndex: index,
+					isPresented: $showingManualEntry,
+					manualUrl: $manualUrl,
+					manualName: $manualName
+				)
+				.environmentObject(streamInfo)
+			}
 	}
 
 	private var emptyContent: some View {
@@ -139,6 +124,43 @@ struct StationTile: View {
 			showingOptions = true
 		} else {
 			Task { await PlayStream.shared.play(streamNumber: streamNumber) }
+		}
+	}
+
+	@ViewBuilder
+	private var tileButton: some View {
+		if isAddButton {
+			Color.clear
+				.aspectRatio(1, contentMode: .fit)
+				.overlay {
+					Button(action: { showingOptions = true }) {
+						Image(systemName: "plus")
+							.font(.title2)
+							.frame(width: 120, height: 120)
+					}
+					.buttonStyle(.bordered)
+					.buttonBorderShape(.circle)
+					.accessibilityLabel(Text("Add Station"))
+				}
+		} else {
+			Button(action: select) {
+				Color.clear
+					.aspectRatio(1, contentMode: .fit)
+					.overlay {
+						if station.url.isEmpty {
+							emptyContent
+						} else {
+							configuredContent
+						}
+					}
+			}
+			.buttonStyle(.card)
+			.simultaneousGesture(
+				LongPressGesture(minimumDuration: 0.5).onEnded { _ in
+					didLongPress = true
+					showingOptions = true
+				}
+			)
 		}
 	}
 }

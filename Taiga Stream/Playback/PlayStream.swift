@@ -68,7 +68,9 @@ class PlayStream {
 	}
 
 	public func play(streamNumber: Int) async {
-		guard let url = URL(string: StreamInfo.shared.stream[streamNumber - 1])
+		let streams = StreamInfo.shared.stream
+		guard streams.indices.contains(streamNumber - 1),
+			let url = URL(string: streams[streamNumber - 1])
 		else { return }
 		await playAction(streamUrl: url, streamNumber: streamNumber)
 	}

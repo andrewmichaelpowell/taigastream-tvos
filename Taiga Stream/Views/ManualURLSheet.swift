@@ -11,7 +11,7 @@ struct ManualURLSheet: View {
 	@EnvironmentObject var streamInfo: StreamInfo
 	@Binding var manualName: String
 
-	var station: RadioStation { streamInfo.stations[slotIndex] }
+	var station: RadioStation { streamInfo.station(at: slotIndex) }
 
 	private var isValidUrl: Bool {
 		guard

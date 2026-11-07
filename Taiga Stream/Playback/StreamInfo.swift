@@ -34,87 +34,116 @@ public class StreamInfo: NSObject, ObservableObject {
 	@Published var nowPlayingTitle: String = ""
 	@Published var nowPlayingArtwork: UIImage?
 
-	@Published var stations: [RadioStation] = {
-		(1...32).map { i in
-			let url =
-				NSUbiquitousKeyValueStore.default.string(
-					forKey: "Stream\(i)Key"
-				) ?? ""
-			let name =
-				NSUbiquitousKeyValueStore.default.string(
-					forKey: "StationName\(i)Key"
-				) ?? ""
-			let favicon =
-				NSUbiquitousKeyValueStore.default.string(
-					forKey: "StationFavicon\(i)Key"
-				) ?? ""
-			let idString = NSUbiquitousKeyValueStore.default.string(
-				forKey: "StationID\(i)Key"
-			)
-			let id = idString.flatMap { UUID(uuidString: $0) } ?? UUID()
-			return RadioStation(url: url, name: name, faviconUrl: favicon)
-		}
-	}()
+	private static let kvs = NSUbiquitousKeyValueStore.default
+	private static let stationCountKey = "StationCountKey"
+	private static let legacySlotCount = 32
 
-	func moveStation(from source: IndexSet, to destination: Int) {
-		stations.move(fromOffsets: source, toOffset: destination)
-		stream.move(fromOffsets: source, toOffset: destination)
-		for i in 0..<32 {
-			NSUbiquitousKeyValueStore.default.set(
-				stations[i].id.uuidString,
-				forKey: "StationID\(i + 1)Key"
+	@Published var stations: [RadioStation] = StreamInfo.loadStations()
+
+	var stream: [String] { stations.map(\.url) }
+
+	private static func loadStations() -> [RadioStation] {
+		let storedCount =
+			kvs.object(forKey: stationCountKey) == nil
+			? legacySlotCount : Int(kvs.longLong(forKey: stationCountKey))
+		guard storedCount > 0 else { return [] }
+		return (1...storedCount).compactMap { i in
+			let url = kvs.string(forKey: "Stream\(i)Key") ?? ""
+			guard !url.isEmpty else { return nil }
+			let name = kvs.string(forKey: "StationName\(i)Key") ?? ""
+			let favicon = kvs.string(forKey: "StationFavicon\(i)Key") ?? ""
+			let id =
+				kvs.string(forKey: "StationID\(i)Key")
+				.flatMap { UUID(uuidString: $0) } ?? UUID()
+			return RadioStation(
+				id: id,
+				url: url,
+				name: name,
+				faviconUrl: favicon
 			)
-			NSUbiquitousKeyValueStore.default.set(
-				stations[i].url,
-				forKey: "Stream\(i + 1)Key"
-			)
-			NSUbiquitousKeyValueStore.default.set(
-				stations[i].name,
-				forKey: "StationName\(i + 1)Key"
-			)
-			NSUbiquitousKeyValueStore.default.set(
-				stations[i].faviconUrl,
-				forKey: "StationFavicon\(i + 1)Key"
-			)
-		}
-		NSUbiquitousKeyValueStore.default.synchronize()
-		if isPlaying {
-			for i in 0..<32 {
-				if stations[i].url == currentStreamUrl?.absoluteString {
-					currentStream = i + 1
-					break
-				}
-			}
 		}
 	}
 
+	private func persistStations() {
+		let kvs = Self.kvs
+		let previousCount =
+			kvs.object(forKey: Self.stationCountKey) == nil
+			? Self.legacySlotCount
+			: Int(kvs.longLong(forKey: Self.stationCountKey))
+		for (offset, station) in stations.enumerated() {
+			let i = offset + 1
+			kvs.set(station.id.uuidString, forKey: "StationID\(i)Key")
+			kvs.set(station.url, forKey: "Stream\(i)Key")
+			kvs.set(station.name, forKey: "StationName\(i)Key")
+			kvs.set(station.faviconUrl, forKey: "StationFavicon\(i)Key")
+		}
+		if previousCount > stations.count {
+			for i in (stations.count + 1)...previousCount {
+				kvs.removeObject(forKey: "StationID\(i)Key")
+				kvs.removeObject(forKey: "Stream\(i)Key")
+				kvs.removeObject(forKey: "StationName\(i)Key")
+				kvs.removeObject(forKey: "StationFavicon\(i)Key")
+			}
+		}
+		kvs.set(Int64(stations.count), forKey: Self.stationCountKey)
+		kvs.synchronize()
+	}
+
+	private func syncCurrentStream() {
+		guard isPlaying, let playingUrl = currentStreamUrl?.absoluteString
+		else { return }
+		if let index = stations.firstIndex(where: { $0.url == playingUrl }) {
+			currentStream = index + 1
+		} else {
+			stopPlayback()
+		}
+	}
+
+	func stopPlayback() {
+		audioPlayer.pause()
+		stopPlaybackHeartbeat()
+		stopMetadataPolling()
+		Self.deactivateAudioSession()
+		clearNowPlaying()
+	}
+
+	func moveStation(from source: IndexSet, to destination: Int) {
+		stations.move(fromOffsets: source, toOffset: destination)
+		persistStations()
+		syncCurrentStream()
+	}
+
 	func saveStation(_ station: RadioStation, at index: Int) {
-		guard index >= 0 && index < 32 else { return }
-		let preserved = RadioStation(
-			id: stations[index].id,
-			url: station.url,
-			name: station.name,
-			faviconUrl: station.faviconUrl
-		)
-		stations[index] = preserved
-		stream[index] = preserved.url
-		NSUbiquitousKeyValueStore.default.set(
-			preserved.url,
-			forKey: "Stream\(index + 1)Key"
-		)
-		NSUbiquitousKeyValueStore.default.set(
-			preserved.name,
-			forKey: "StationName\(index + 1)Key"
-		)
-		NSUbiquitousKeyValueStore.default.set(
-			preserved.faviconUrl,
-			forKey: "StationFavicon\(index + 1)Key"
-		)
-		NSUbiquitousKeyValueStore.default.set(
-			preserved.id.uuidString,
-			forKey: "StationID\(index + 1)Key"
-		)
-		NSUbiquitousKeyValueStore.default.synchronize()
+		guard index >= 0 && index <= stations.count else { return }
+		if station.url.isEmpty {
+			guard index < stations.count else { return }
+			stations.remove(at: index)
+		} else if index == stations.count {
+			stations.append(
+				RadioStation(
+					url: station.url,
+					name: station.name,
+					faviconUrl: station.faviconUrl
+				)
+			)
+		} else {
+			stations[index] = RadioStation(
+				id: stations[index].id,
+				url: station.url,
+				name: station.name,
+				faviconUrl: station.faviconUrl
+			)
+		}
+		persistStations()
+		syncCurrentStream()
+	}
+
+	func clearStation(at index: Int) {
+		saveStation(.empty, at: index)
+	}
+
+	func station(at index: Int) -> RadioStation {
+		stations.indices.contains(index) ? stations[index] : .empty
 	}
 
 	private let metadataProviders: [MetadataProvider] = [
@@ -174,9 +203,6 @@ public class StreamInfo: NSObject, ObservableObject {
 	}
 
 	@Published var audioPlayer = AVPlayer()
-	@Published var stream: [String] = (1...32).map {
-		NSUbiquitousKeyValueStore.default.string(forKey: "Stream\($0)Key") ?? ""
-	}
 
 	override init() {
 		super.init()

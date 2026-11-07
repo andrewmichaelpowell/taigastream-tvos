@@ -14,7 +14,7 @@ struct StreamOptionsSheet: View {
 	@Binding var movingIndex: Int?
 	@EnvironmentObject var streamInfo: StreamInfo
 
-	var station: RadioStation { streamInfo.stations[index] }
+	var station: RadioStation { streamInfo.station(at: index) }
 
 	var body: some View {
 		NavigationStack {
@@ -33,13 +33,13 @@ struct StreamOptionsSheet: View {
 						showingManualEntry = true
 					}
 				}
-				optionButton("Move") {
-					isPresented = false
-					movingIndex = index
-				}
 				if !station.url.isEmpty {
+					optionButton("Move") {
+						isPresented = false
+						movingIndex = index
+					}
 					optionButton("Clear", role: .destructive) {
-						streamInfo.saveStation(.empty, at: index)
+						streamInfo.clearStation(at: index)
 						isPresented = false
 					}
 				}

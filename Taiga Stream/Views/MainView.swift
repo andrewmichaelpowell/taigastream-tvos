@@ -38,6 +38,13 @@ struct MainView: View {
 								moveStation(direction)
 							}
 					}
+					StationTile(
+						index: streamInfo.stations.count,
+						movingIndex: $movingIndex,
+						isAddButton: true
+					)
+					.environmentObject(streamInfo)
+					.disabled(movingIndex != nil)
 				}
 				.padding(40)
 			}
