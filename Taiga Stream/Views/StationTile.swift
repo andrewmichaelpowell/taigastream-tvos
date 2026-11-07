@@ -74,7 +74,7 @@ struct StationTile: View {
 		}
 		.padding(24)
 		.frame(maxWidth: .infinity, maxHeight: .infinity)
-		.background(isMoving ? Color.mint.opacity(0.35) : Color.clear)
+		.background(isMoving ? Color.slot.opacity(0.35) : Color.clear)
 	}
 
 	private var configuredContent: some View {
@@ -95,14 +95,14 @@ struct StationTile: View {
 		statusLabel
 			.font(.callout)
 			.frame(width: 56, height: 56)
-			.background(Circle().fill(isMoving ? Color.mint : Color.slot))
+			.background(Circle().fill(Color.slot))
 	}
 
 	@ViewBuilder
 	private var statusLabel: some View {
 		if isMoving {
 			Image(systemName: "arrow.up.and.down.and.arrow.left.and.right")
-				.foregroundColor(station.url.isEmpty ? .mint : Color(.label))
+				.foregroundColor(station.url.isEmpty ? Color.slot : Color(.label))
 		} else if isPlaying {
 			Image(systemName: "stop.fill")
 				.foregroundColor(Color(.label))
