@@ -95,14 +95,16 @@ struct StationTile: View {
 		statusLabel
 			.font(.callout)
 			.frame(width: 56, height: 56)
-			.background(Circle().fill(Color.slot))
+			.badgeGlass()
 	}
 
 	@ViewBuilder
 	private var statusLabel: some View {
 		if isMoving {
 			Image(systemName: "arrow.up.and.down.and.arrow.left.and.right")
-				.foregroundColor(station.url.isEmpty ? Color.slot : Color(.label))
+				.foregroundColor(
+					station.url.isEmpty ? Color.slot : Color(.label)
+				)
 		} else if isPlaying {
 			Image(systemName: "stop.fill")
 				.foregroundColor(Color(.label))
@@ -136,10 +138,10 @@ struct StationTile: View {
 					Button(action: { showingOptions = true }) {
 						Image(systemName: "plus")
 							.font(.title2)
+							.foregroundStyle(.white)
 							.frame(width: 120, height: 120)
 					}
-					.buttonStyle(.bordered)
-					.buttonBorderShape(.circle)
+					.addButtonStyle()
 					.accessibilityLabel(Text("Add Station"))
 				}
 		} else {

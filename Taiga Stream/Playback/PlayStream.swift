@@ -25,10 +25,21 @@ class PlayStream {
 		}
 	}
 
+	func prepareSession(mode: AVAudioSession.Mode) async {
+		await deactivateSession()
+		try? AVAudioSession.sharedInstance().setCategory(
+			.playback,
+			mode: mode,
+			options: []
+		)
+		await activateSession()
+	}
+
 	private func startStream(_ streamUrl: URL, streamNumber: Int) async {
 		let newStreamItem = AVPlayerItem(url: streamUrl)
 		let data = StreamInfo.shared
 
+		PodcastPlayer.shared.deactivate()
 		await deactivateSession()
 		try? AVAudioSession.sharedInstance().setCategory(
 			.playback,

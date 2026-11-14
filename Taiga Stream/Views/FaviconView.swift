@@ -8,6 +8,7 @@ struct FaviconView: View {
 	let station: RadioStation
 	var size: CGFloat = 36
 	var cornerRadius: CGFloat? = nil
+	var fallbackSystemImage = "antenna.radiowaves.left.and.right"
 	@State private var favicon: UIImage? = nil
 	@State private var faviconNeedsBackground = false
 	@State private var faviconNeedsInset = false
@@ -64,7 +65,7 @@ struct FaviconView: View {
 	}
 
 	private func loadFallbackIcon() {
-		fallbackIcon = UIImage(systemName: "antenna.radiowaves.left.and.right")
+		fallbackIcon = UIImage(systemName: fallbackSystemImage)
 	}
 
 	private func normalizeImage(_ image: UIImage) -> UIImage {

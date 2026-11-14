@@ -86,6 +86,7 @@ struct RadioBrowserSearchSheet: View {
 							}
 						}
 					}
+					.scrollClipDisabled()
 				}
 			}
 			.padding(.horizontal, 40)
