@@ -10,16 +10,15 @@ struct TaigaStream: App {
 	init() {
 		let appearance = UITabBarAppearance()
 		appearance.configureWithTransparentBackground()
-		appearance.selectionIndicatorTintColor = UIColor.white
-			.withAlphaComponent(0.80)
+		appearance.selectionIndicatorTintColor = .taigaGreen
 		for item in [
 			appearance.stackedLayoutAppearance,
 			appearance.inlineLayoutAppearance,
 			appearance.compactInlineLayoutAppearance,
 		] {
 			item.normal.iconColor = .white
-			item.selected.iconColor = .taigaGreen
-			item.focused.iconColor = .taigaGreen
+			item.selected.iconColor = .white
+			item.focused.iconColor = .white
 		}
 		UITabBar.appearance().standardAppearance = appearance
 	}
