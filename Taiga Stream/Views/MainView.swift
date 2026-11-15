@@ -86,19 +86,6 @@ struct RadioPage: View {
 			}
 			.scrollClipDisabled()
 		}
-		.background {
-			GeometryReader { geometry in
-				StationArtwork(
-					highlightedIndex: highlightedIndex,
-					size: geometry.size.width
-				)
-				.frame(width: geometry.size.width, height: geometry.size.height)
-				.clipped()
-				.blur(radius: 60, opaque: true)
-				.overlay(Color.black.opacity(0.55))
-			}
-			.ignoresSafeArea()
-		}
 		.onExitCommand(
 			perform: movingIndex == nil ? nil : { movingIndex = nil }
 		)

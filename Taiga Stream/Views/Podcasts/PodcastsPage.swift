@@ -4,8 +4,6 @@
 import Foundation
 import SwiftUI
 
-/// The Podcasts tab: the same layout as the stations, with a Now Playing
-/// panel on the left and a grid of podcast artwork on the right.
 struct PodcastsPage: View {
 	@ObservedObject var library = PodcastLibrary.shared
 	@State private var movingIndex: Int? = nil
@@ -47,27 +45,9 @@ struct PodcastsPage: View {
 					.disabled(movingIndex != nil)
 				}
 				.padding(40)
-				// The gap to the panel is inside the scroll area, so the
-				// focused tile's shadow has room on the left too.
 				.padding(.leading, 60)
 			}
-			// The focused tile grows and casts a shadow past the grid's
-			// edge; without this the scroll view cuts it off in a straight
-			// line next to the panel.
 			.scrollClipDisabled()
-		}
-		.background {
-			GeometryReader { geometry in
-				PodcastArtwork(
-					highlightedID: highlightedPodcast,
-					size: geometry.size.width
-				)
-				.frame(width: geometry.size.width, height: geometry.size.height)
-				.clipped()
-				.blur(radius: 60, opaque: true)
-				.overlay(Color.black.opacity(0.55))
-			}
-			.ignoresSafeArea()
 		}
 		.onExitCommand(
 			perform: movingIndex == nil ? nil : { movingIndex = nil }
@@ -99,8 +79,6 @@ struct PodcastsPage: View {
 	}
 }
 
-/// The podcast the panel and background show: the one playing or paused,
-/// otherwise the one with focus.
 private func shownPodcast(highlightedID: UUID?) -> Podcast? {
 	let library = PodcastLibrary.shared
 	if let id = PodcastPlayer.shared.activePodcastID,
@@ -172,7 +150,9 @@ struct PodcastNowPlayingPanel: View {
 			if let podcast = shownPodcast(highlightedID: highlightedID) {
 				let isActive = player.activePodcastID == podcast.id
 				let episode =
-					isActive ? player.activeEpisode : library.currentEpisode(for: podcast)
+					isActive
+					? player.activeEpisode
+					: library.currentEpisode(for: podcast)
 				if let episode {
 					Text(episode.title.isEmpty ? podcast.name : episode.title)
 						.font(.title3)
@@ -207,12 +187,16 @@ struct PodcastNowPlayingPanel: View {
 			isActive
 			? player.position
 			: library.savedPosition(podcastID: podcast.id, episode: episode)
-		let duration = isActive ? (player.duration ?? episode.duration) : episode.duration
+		let duration =
+			isActive ? (player.duration ?? episode.duration) : episode.duration
 		if let duration, duration > 0, position > 0 {
 			ProgressView(value: min(position / duration, 1))
 				.tint(Color(.secondaryLabel))
 		}
-		if let detail = PodcastFormat.remaining(position: position, duration: duration)
+		if let detail = PodcastFormat.remaining(
+			position: position,
+			duration: duration
+		)
 			?? PodcastFormat.date(episode.publishedAt)
 		{
 			Text(detail)
